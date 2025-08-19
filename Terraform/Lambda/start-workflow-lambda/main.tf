@@ -1,8 +1,8 @@
-#  configuration
+#  start-workflow-lambda configuration
 
 
 # IAM role for All Lambda functions
-data "aws_iam_policy_document" "assume_role" {
+data "aws_iam_policy_document" "start_workflow_lambda_assume_role" {
   statement {
     effect = "Allow"
 
@@ -15,15 +15,15 @@ data "aws_iam_policy_document" "assume_role" {
   }
 }
 
-resource "aws_iam_role" "lambda_role" {
-  name               = "lambda_execution_role"
-  assume_role_policy = data.aws_iam_policy_document.assume_role.json
+resource "aws_iam_role" "start_workflow_lambda_role" {
+  name               = "start_workflow_lambda_execution_role"
+  assume_role_policy = data.aws_iam_policy_document.start_workflow_lambda_assume_role.json
 }
 
-data "aws_iam_policy_document" "lambda_policy" {
+data "aws_iam_policy_document" "start_workflow_lambda_policy" {
   statement {
-    sid     = "SQSPoller"
-    effect  = "Allow"
+    sid    = "SQSPoller"
+    effect = "Allow"
     actions = [
       "sqs:ReceiveMessage",
       "sqs:DeleteMessage",
@@ -35,19 +35,27 @@ data "aws_iam_policy_document" "lambda_policy" {
   }
 
   statement {
-    sid     = "DynamoReadWorkflowMetadata"
-    effect  = "Allow"
+    sid    = "DynamoReadWorkflowMetadata"
+    effect = "Allow"
     actions = [
-      "dynamodb:GetItem"
+      "dynamodb:GetItem",
+      "dynamodb:BatchGetItem",
+      "dynamodb:Query",
+      "dynamodb:Scan",
+      "dynamodb:PutItem",
+      "dynamodb:UpdateItem",
+      "dynamodb:DeleteItem",
+      "dynamodb:BatchWriteItem"
     ]
     resources = [
-      "arn:aws:dynamodb:eu-west-3:195044943814:table/workflow_metadata"
+      "arn:aws:dynamodb:eu-west-3:195044943814:table/workflow_metadata",
+      "arn:aws:dynamodb:eu-west-3:195044943814:table/workflow_statut"
     ]
   }
 
   statement {
-    sid     = "StartStepFunctions"
-    effect  = "Allow"
+    sid    = "StartStepFunctions"
+    effect = "Allow"
     actions = [
       "states:StartExecution"
     ]
@@ -55,8 +63,8 @@ data "aws_iam_policy_document" "lambda_policy" {
   }
 
   statement {
-    sid     = "CloudWatchLogs"
-    effect  = "Allow"
+    sid    = "CloudWatchLogs"
+    effect = "Allow"
     actions = [
       "logs:CreateLogGroup",
       "logs:CreateLogStream",
@@ -69,10 +77,10 @@ data "aws_iam_policy_document" "lambda_policy" {
 }
 
 
-resource "aws_iam_role_policy" "lambda_permissions" {
+resource "aws_iam_role_policy" "start_workflow_lambda_permissions" {
   name   = "lambda_permissions"
-  role   = aws_iam_role.lambda_role.id
-  policy = data.aws_iam_policy_document.lambda_policy.json
+  role   = aws_iam_role.start_workflow_lambda_role.id
+  policy = data.aws_iam_policy_document.start_workflow_lambda_policy.json
 }
 
 
@@ -87,17 +95,17 @@ data "archive_file" "data_start_workflow_lambda" {
 
 # Lambda function
 resource "aws_lambda_function" "start_workflow_lambda" {
-  filename         = data.archive_file.data_start_workflow_lambda.output_path
-  function_name    = "start_workflow_lambda"
-  role             = aws_iam_role.lambda_role.arn
-  handler          = "index.handler"
+  filename      = data.archive_file.data_start_workflow_lambda.output_path
+  function_name = "start_workflow_lambda"
+  role          = aws_iam_role.start_workflow_lambda_role.arn
+  handler       = "index.handler"
 
   runtime = "python3.12"
 
   environment {
     variables = {
       WORKFLOW_METADATA_TABLE = "workflow_metadata"
-      WORKFLOW_TRACK_TABLE   = "workflow_statut"
+      WORKFLOW_TRACK_TABLE    = "workflow_statut"
     }
   }
 }
