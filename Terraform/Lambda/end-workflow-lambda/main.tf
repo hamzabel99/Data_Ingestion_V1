@@ -65,11 +65,11 @@ data "archive_file" "end_workflow_lambda" {
 }
 
 # Lambda function
-resource "aws_lambda_function" "start_workflow_lambda" {
+resource "aws_lambda_function" "end_workflow_lambda" {
   filename      = data.archive_file.end_workflow_lambda.output_path
   function_name = "end_workflow_lambda"
   role          = aws_iam_role.end_workflow_lambda_role.arn
-  handler       = "index.handler"
+  handler       = "end-workflow-lambda.lambda_handler"
 
   runtime = "python3.12"
 

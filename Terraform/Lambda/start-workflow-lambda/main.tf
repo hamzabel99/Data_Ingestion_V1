@@ -98,7 +98,7 @@ resource "aws_lambda_function" "start_workflow_lambda" {
   filename      = data.archive_file.data_start_workflow_lambda.output_path
   function_name = "start_workflow_lambda"
   role          = aws_iam_role.start_workflow_lambda_role.arn
-  handler       = "index.handler"
+  handler       = "start-workflow-lambda.lambda_handler"
 
   runtime = "python3.12"
 
