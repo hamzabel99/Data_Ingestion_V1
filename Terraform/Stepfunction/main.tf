@@ -1,3 +1,6 @@
+data "aws_caller_identity" "current" {}
+data "aws_region" "current" {}
+
 resource "aws_sfn_state_machine" "sfn_state_machine" {
   name     = "csv-to-parquet-sfn"
   role_arn = aws_iam_role.csv_to_parquet_sfn_role.arn
@@ -81,7 +84,7 @@ data "aws_iam_policy_document" "csv_to_parquet_sfn_policy" {
     ]
 
     resources = [
-      "arn:aws:lambda:eu-west-3:195044943814:function:end_workflow_lambda"
+      "arn:aws:lambda:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:function:end_workflow_lambda"
     ]
   }
 

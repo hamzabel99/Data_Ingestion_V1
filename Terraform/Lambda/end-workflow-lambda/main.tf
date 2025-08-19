@@ -1,3 +1,6 @@
+data "aws_caller_identity" "current" {}
+data "aws_region" "current" {}
+
 data "aws_iam_policy_document" "end_workflow_lambda_assume_role" {
   statement {
     effect = "Allow"
@@ -32,8 +35,8 @@ data "aws_iam_policy_document" "end_workflow_lambda_policy" {
       "dynamodb:BatchWriteItem"
     ]
     resources = [
-      "arn:aws:dynamodb:eu-west-3:195044943814:table/workflow_statut"
-    ]
+    "arn:aws:dynamodb:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:table/workflow_statut"
+]
   }
 
   statement {
@@ -45,7 +48,7 @@ data "aws_iam_policy_document" "end_workflow_lambda_policy" {
       "logs:PutLogEvents"
     ]
     resources = [
-      "arn:aws:logs:eu-west-3:195044943814:log-group:/aws/lambda/*"
+      "arn:aws:logs:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/*"
     ]
   }
 }
