@@ -1,6 +1,7 @@
 import json
 import boto3
 import os
+from datetime import datetime
 
 # Clients AWS
 dynamodb = boto3.resource("dynamodb")
@@ -62,7 +63,7 @@ def lambda_handler(event, context):
 
         workflow_table.put_item(
         Item={
-            "s3_prefix": s3_prefix,
+            "s3_prefix": object_key,
             "start_time": datetime.utcnow().isoformat(),
             "status": "Started"
         }
